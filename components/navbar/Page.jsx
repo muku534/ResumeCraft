@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from "@nextui-org/react";
 import Image from "next/image";
+import { Link as ScrollLink, animateScroll as scroll } from "react-scroll";
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,15 +40,27 @@ export default function Header() {
                 </NavbarContent>
 
                 <NavbarContent className="hidden sm:flex gap-4" justify="center">
-                    <NavbarItem isActive>
-                        <Link href="#" aria-current="page">
+                    <NavbarItem>
+                        <ScrollLink
+                            to="Home"
+                            spy={true}
+                            smooth={true}
+                            duration={500}
+                            className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                            aria-current="page">
                             HOME
-                        </Link>
+                        </ScrollLink>
                     </NavbarItem>
                     <NavbarItem >
-                        <Link color="foreground" href="#" >
+                        <ScrollLink
+                            to="About"
+                            spy={true}
+                            smooth={true}
+                            duration={500}
+                            className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                            aria-current="page">
                             ABOUT US
-                        </Link>
+                        </ScrollLink>
                     </NavbarItem>
                     <NavbarItem>
                         <Link color="foreground" href="#">
@@ -61,7 +74,7 @@ export default function Header() {
                     </NavbarItem>
                 </NavbarContent>
                 <NavbarContent justify="end">
-                    <NavbarItem className="hidden lg:flex ">
+                    <NavbarItem className="hidden lg:flex pointer">
                         <Link onClick={handleLoginButtonClick}>Login</Link>
                     </NavbarItem>
                     <NavbarItem>

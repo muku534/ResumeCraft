@@ -1,12 +1,11 @@
-import Login from "@/auth/login/Page";
+import Home from "@/components/home/Page";
 import Header from "@/components/navbar/Page";
 import Image from "next/image";
 
-export default function Home() {
+export default function home() {
   return (
     <>
-      <Header />
-      {/* <Login /> */}
+      <Home />
     </>
   );
 }
