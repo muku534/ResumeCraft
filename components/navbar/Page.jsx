@@ -4,10 +4,14 @@ import React, { useState } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from "@nextui-org/react";
 import Image from "next/image";
 import { Link as ScrollLink, animateScroll as scroll } from "react-scroll";
+import Login from "@/auth/login/Page";
+import Signup from "@/auth/signup/Page";
+
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+    const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
 
     const menuItems = [
         "HOME",
@@ -23,6 +27,14 @@ export default function Header() {
 
     const handleCloseLoginModal = () => {
         setIsLoginModalOpen(false);
+    };
+
+    const handleSignUpButtonClick = () => {
+        setIsSignUpModalOpen(true);
+    };
+
+    const handleCloseSignUpModal = () => {
+        setIsSignUpModalOpen(false);
     };
 
     return (
@@ -46,6 +58,7 @@ export default function Header() {
                             spy={true}
                             smooth={true}
                             duration={500}
+                            offset={-100}
                             className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                             aria-current="page">
                             HOME
@@ -57,33 +70,48 @@ export default function Header() {
                             spy={true}
                             smooth={true}
                             duration={500}
+                            offset={-100}
                             className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
                             aria-current="page">
                             ABOUT US
                         </ScrollLink>
                     </NavbarItem>
                     <NavbarItem>
-                        <Link color="foreground" href="#">
+                        <ScrollLink
+                            to="Templates"
+                            spy={true}
+                            smooth={true}
+                            duration={500}
+                            offset={-100}
+                            className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                            aria-current="page">
                             TEMPLATES
-                        </Link>
+                        </ScrollLink>
                     </NavbarItem>
                     <NavbarItem>
-                        <Link color="foreground" href="#">
+                        <ScrollLink
+                            to="Contact"
+                            spy={true}
+                            smooth={true}
+                            duration={500}
+                            offset={-100}
+                            className="cursor-pointer block py-2 pl-3 pr-4 text-gray-900 rounded hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 md:p-0 dark:text-gray-800 md:dark:hover:text-blue-500 dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700"
+                            aria-current="page">
                             CONTACT
-                        </Link>
+                        </ScrollLink>
                     </NavbarItem>
                 </NavbarContent>
                 <NavbarContent justify="end">
                     <NavbarItem className="hidden lg:flex pointer">
-                        <Link onClick={handleLoginButtonClick}>Login</Link>
+                        <Link onClick={handleLoginButtonClick} className="cursor-pointer">Login</Link>
                     </NavbarItem>
                     <NavbarItem>
-                        <Button as={Link} color="primary" href="#" variant="flat">
+                        <Button onClick={handleSignUpButtonClick} color="primary" href="#" variant="flat">
                             Sign Up
                         </Button>
                     </NavbarItem>
                 </NavbarContent>
-                <NavbarMenu>
+                {/* <NavbarMenu>
                     {menuItems.map((item, index) => (
                         <NavbarMenuItem key={`${item}-${index}`}>
                             <Link
@@ -98,22 +126,12 @@ export default function Header() {
                             </Link>
                         </NavbarMenuItem>
                     ))}
-                </NavbarMenu>
+                </NavbarMenu> */}
             </Navbar>
 
-            <Modal isOpen={isLoginModalOpen} onClose={handleCloseLoginModal} placement="top-center">
-                <ModalContent>
-                    <ModalHeader>Log in</ModalHeader>
-                    <ModalBody>
-                        <Input label="Email" placeholder="Enter your email" variant="bordered" />
-                        <Input label="Password" placeholder="Enter your password" type="password" variant="bordered" />
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button color="default" onClick={handleCloseLoginModal}>Close</Button>
-                        <Button color="primary">Sign in</Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <Login isOpen={isLoginModalOpen} onOpenChange={setIsLoginModalOpen} />
+            <Signup isOpen={isSignUpModalOpen} onOpenChange={setIsSignUpModalOpen} />
+
         </>
     );
 }

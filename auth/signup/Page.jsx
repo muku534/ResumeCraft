@@ -1,10 +1,11 @@
 import React from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Checkbox, Input, Link } from "@nextui-org/react";
-import MailIcon from "../MailIcon"; // Assuming MailIcon is exported from "../MailIcon.jsx"
-import LockIcon from "../LockIcon"; 
+// import MailIcon from "../MailIcon"; // Assuming MailIcon is exported from "../MailIcon.jsx"
+// import LockIcon from "../LockIcon";
 
 
-export default function Login({ isOpen, onOpenChange }) {
+export default function Signup({ isOpen, onOpenChange }) {
+
     return (
         <Modal
             isOpen={isOpen}
@@ -14,8 +15,26 @@ export default function Login({ isOpen, onOpenChange }) {
             <ModalContent>
                 {(onClose) => (
                     <>
-                        <ModalHeader className="flex flex-col gap-1">Log in</ModalHeader>
+                        <ModalHeader className="flex flex-col gap-1">Sign up</ModalHeader>
                         <ModalBody>
+                            <Input
+                                autoFocus
+                                // endContent={
+                                //     <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                                // }
+                                label="First name"
+                                placeholder="Enter your First name"
+                                variant="bordered"
+                            />
+                            <Input
+                                autoFocus
+                                // endContent={
+                                //     <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                                // }
+                                label="Email"
+                                placeholder="Enter your email"
+                                variant="bordered"
+                            />
                             <Input
                                 autoFocus
                                 // endContent={

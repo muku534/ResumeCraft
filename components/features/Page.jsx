@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import ColoredDots from "../style/ColoredDots ";
+import Image from "next/image";
+import F1 from "../../public/assets/f1.png"
+import F2 from "../../public/assets/f2.png"
+import F3 from "../../public/assets/f3.png"
+import F4 from "../../public/assets/f4.png"
+import F5 from "../../public/assets/f5.png"
+import F6 from "../../public/assets/f6.png"
 
 const Features = () => {
     return (
@@ -23,29 +30,35 @@ const Features = () => {
 
                     <div className="grid grid-cols-1 mt-12 text-center sm:mt-16 gap-x-20 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
                         <ProjectCard
+                            imageURL={F1}
                             title="Proven CV Templates to increase Hiring Chance"
-                            description="Developed SCS (Sustainable Computer Solution), an e-commerce app built using React.js, Node.js, Express.js, MongoDB and ...."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                             link="https://github.com/muku534/bug-free-adventure"
                         />
                         <ProjectCard
+                            imageURL={F2}
                             title="Creative, Modern and Clean Templates Design"
-                            description="CallVerse, a secure and seamless chat app built using React Native Expo, Node.js, Express.js, MongoDB, and Socket.io."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                         />
                         <ProjectCard
+                            imageURL={F3}
                             title="Easy and Intuitive Online CV and Resume Builder"
-                            description="Developed SCS (Sustainable Computer Solution), an e-commerce app built using React Native CLI, Node.js, Express.js, MongoDB."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                         />
                         <ProjectCard
+                            imageURL={F4}
                             title="Free to use. Developed by hiring professionals."
-                            description="Developed CallVerse (Chat App), a chat application using React Native CLI and Firebase. The application features a unique offering where...."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                         />
                         <ProjectCard
+                            imageURL={F5}
                             title="Recruiter Approved Phrases with Module Notification"
-                            description="Developed CallVerse (Chat App), a chat application using React Native CLI and Firebase. The application features a unique offering where...."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                         />
                         <ProjectCard
+                            imageURL={F6}
                             title="Fast Easy CV and Resume Formatting"
-                            description="Developed CallVerse (Chat App), a chat application using React Native CLI and Firebase. The application features a unique offering where...."
+                            description="Lorem ipsum dolor sit amet, consecte adipiscing elit. Nulla neque quam, maxim us ut accumsan ut, posuere sit Lorem ipsum adipiscing elit."
                         />
                     </div>
                 </div>
@@ -54,12 +67,15 @@ const Features = () => {
     );
 };
 
-const ProjectCard = ({ title, description, link }) => {
+const ProjectCard = ({ title, description, imageURL }) => {
     return (
         <div className="space-y-4 border border-2 border-gray-100 rounded-lg p-5 shadow-xl hover:shadow-2xl">
-            <h3 className="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-700">{title}</h3>
-            <p className="text-lg font-normal text-gray-500 dark:text-gray-400">{description}</p>
-           
+            <div className="flex justify-center">
+                <Image src={imageURL} width={80} height={80} />
+            </div>
+            <h3 className="text-md font-bold leading-tight text-gray-900 dark:text-gray-700">{title}</h3>
+            <p className="text-sm font-normal text-gray-500 dark:text-gray-400">{description}</p>
+
         </div>
     );
 };
