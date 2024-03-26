@@ -11,33 +11,30 @@ export default function Home() {
 
     return (
         <>
-            <main id="Home" className="flex w-full justify-between items-center bg-linear-gradient pt-20">
-                <div className="container mx-auto flex lg:px-5 md:flex-row flex-col items-center justify-center">
-                    <div className="lg:flex-grow lg:mx-20 md:pt-5 flex flex-col md:text-left ">
-                        <Code size="md" radius="lg" color="primary" className="flex items-center mb-4 max-w-md ml-14 md:ml-14">
-                            <Image src={Dollar} width={20} height={20} className="mr-2" />
-                            Discover The Easiest ways to Build Your CV!
-                        </Code>
+            <main id="Home" className="flex flex-col lg:flex-row justify-center items-center bg-linear-gradient pt-20 px-5">
+                <div className="lg:w-1/2 lg:pr-10 flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
+                    <Code size="md" radius="lg" color="primary" className="flex items-center mb-4 lg:ml-5 lg:mb-0 pr-5">
+                        <Image src={Dollar} width={20} height={20} className="mr-2" />
+                        <span className="lg:block text-sm">Discover The Easiest ways to Build Your CV!</span>
+                    </Code>
 
 
-                        <div className="mb-10">
-                            <h1 className="text-5xl font-bold leading-tight tracking-tight lg:pl-10 lg:pr-20 lg:ml-5 text-blue-700 dark:text-text-blue-700 mb-4" style={{ lineHeight: '1.2' }}>Online CV Builder With Creative Templates.</h1>
-                            <p className="text-lg font-normal text-gray-400 tracking-tight lg:pl-10 lg:ml-5 sm:text-lg md:text-6xl lg:text-xl dark:text-gray-900" style={{ lineHeight: '1.5' }}>Our Perfect resume builder takes the hassle out of resume writing. Choose from several templates and follow easy prompts to create the perfect job-ready resume.</p>
-                        </div>
-
-                        <div className="flex flex-row ml-14">
-                            <Button color="primary" variant="flat" className="mr-6">
+                    <div className="mb-10 lg:ml-5">
+                        <h1 className="text-4xl lg:text-5xl font-bold leading-tight tracking-tight text-blue-700 dark:text-text-blue-700 mb-4">Online CV Builder With Creative Templates.</h1>
+                        <p className="text-lg lg:text-xl font-normal text-gray-400 tracking-tight mb-6 lg:pr-20 lg:mb-8">Our Perfect resume builder takes the hassle out of resume writing. Choose from several templates and follow easy prompts to create the perfect job-ready resume.</p>
+                        <div className="flex flex-col lg:flex-row items-center lg:items-start">
+                            <Button color="primary" variant="flat" className="mb-4 lg:mb-0 lg:mr-4">
                                 CHOOSE TEMPLATE
                             </Button>
                             <Button color="primary" variant="flat">
-                                CONTECT US
+                                CONTACT US
                             </Button>
                         </div>
-
                     </div>
-                    {/* <!-- Add the 'hidden' class for small screens --> */}
-                    <div className="custom-image overflow-hidden object-cover object-center rounded lg:block hidden">
-                        <Image alt="hero" src={banner} width={1500} height={1500} />
+                </div>
+                <div className="w-full lg:w-1/2">
+                    <div className="custom-image overflow-hidden object-cover object-center rounded">
+                        <Image alt="hero" src={banner} layout="responsive" width={1500} height={1000} />
                     </div>
                 </div>
             </main>
