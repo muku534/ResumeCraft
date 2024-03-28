@@ -4,14 +4,18 @@ import { useEffect, useState } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button } from "@nextui-org/react";
 // import { AcmeLogo } from "./AcmeLogo.jsx";
 import Image from "next/image";
-import Login from "@/auth/login/Page";
-import Signup from "@/auth/signup/Page";
+import Login from "@/components/login/Page";
+import Signup from "@/components/signup/Page";
 import { Link as ScrollLink, animateScroll as scroll } from "react-scroll";
+import { getSession } from "next-auth/react";
 
-export default function App() {
+export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+
+    const session = getSession();
+    console.log("session", session)
 
     const menuItems = [
         { label: "HOME", target: "Home" },
