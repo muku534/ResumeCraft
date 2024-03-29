@@ -7,22 +7,33 @@ import Image from "next/image";
 import Login from "@/components/login/Page";
 import Signup from "@/components/signup/Page";
 import { Link as ScrollLink, animateScroll as scroll } from "react-scroll";
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
+import { Avatar } from "@nextui-org/react";
+import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, } from "@nextui-org/react";
+
 
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
+    const [session, setSession] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const session = getSession();
-    console.log("session", session)
+    useEffect(() => {
+        const fetchData = async () => {
+            const session = await getSession();
+            setSession(session);
+            setLoading(false);
+        };
+        fetchData();
+    }, []);
 
     const menuItems = [
         { label: "HOME", target: "Home" },
         { label: "ABOUT US", target: "About" },
         { label: "TEMPLATES", target: "Templates" },
         { label: "CONTACT", target: "Contact" },
-        { label: "Log Out", target: null } // Assuming this is a placeholder, not a scroll target
+        // { label: "Log Out", target: null } // Assuming this is a placeholder, not a scroll target
     ];
 
     const handleMenuItemClick = () => {
@@ -113,14 +124,34 @@ export default function Header() {
                 </NavbarItem>
             </NavbarContent>
             <NavbarContent justify="end">
-                <NavbarItem className="hidden lg:flex pointer">
-                    <Link onClick={handleLoginButtonClick} className="cursor-pointer">Login</Link>
-                </NavbarItem>
-                <NavbarItem>
-                    <Button onClick={handleSignUpButtonClick} color="primary" href="#" variant="flat">
-                        Sign Up
-                    </Button>
-                </NavbarItem>
+                {session ? (
+                    <NavbarItem>
+                        <Dropdown>
+                            <DropdownTrigger>
+                                <Avatar isBordered src={session?.user?.image} className="cursor-pointer" />
+                            </DropdownTrigger>
+                            <DropdownMenu aria-label="Static Actions">
+                                <DropdownItem key="new">Dashboard</DropdownItem>
+                                <DropdownItem key="delete" className="text-danger" color="danger" onClick={signOut}>
+                                    Log Out
+                                </DropdownItem>
+                            </DropdownMenu>
+                        </Dropdown>
+                        {/* <Image src={session?.user?.image} alt="User Avatar" width={40} height={40} className="rounded-full" /> */}
+                    </NavbarItem>
+                ) : (
+                    // Otherwise, render login and signup buttons
+                    <>
+                        <NavbarItem className="hidden lg:flex pointer">
+                            <Button onClick={handleLoginButtonClick} color="primary" href="#" variant="flat">Login</Button>
+                        </NavbarItem>
+                        {/* <NavbarItem>
+                            <Button onClick={handleSignUpButtonClick} color="primary" href="#" variant="flat">
+                                Sign Up
+                            </Button>
+                        </NavbarItem> */}
+                    </>
+                )}
             </NavbarContent>
             <NavbarMenu>
                 {menuItems.map((item, index) => (
