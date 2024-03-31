@@ -1,6 +1,4 @@
-import Home from "@/components/home/Page";
-import Header from "@/components/navbar/Page";
-import Image from "next/image";
+import Home from "../components/home/Page";
 
 export default function home() {
   return (

@@ -4,13 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import ColoredDots from "../style/ColoredDots ";
 import BackgroundImage from "../../public/assets/benefits-bg.svg"
-import CV1 from "../../public/assets/demo-1.png"
-import CV2 from "../../public/assets/demo-2.png"
-import CV3 from "../../public/assets/demo-3.png"
+// import CV1 from "../../public/assets/demo-1.png"
+// import CV2 from "../../public/assets/demo-2.png"
+// import CV3 from "../../public/assets/demo-3.png"
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
 
 const Templates = () => {
+    const templates = [
+        { id: 'cv1', imageURL: '/assets/demo-1.png' },
+        { id: 'cv2', imageURL: '/assets/demo-2.png' },
+        { id: 'cv3', imageURL: '/assets/demo-3.png' },
+    ];
     return (
         <div id="Templates">
             <section className="bg-white antialiased bg-cover " style={{ backgroundImage: `url('/assets/ring-bg.png')`, backgroundRepeat: 'no-repeat' }}>
@@ -29,18 +34,13 @@ const Templates = () => {
                     </div>
 
                     <div className="grid grid-cols-1 mt-12 text-center sm:mt-16 gap-x-20 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-                        <ProjectCard
-                            imageURL={CV1}
-
-                        />
-                        <ProjectCard
-                            imageURL={CV2}
-
-                        />
-                        <ProjectCard
-                            imageURL={CV3}
-
-                        />
+                        {templates.map((template) => (
+                            <ProjectCard
+                                key={template.id}
+                                imageURL={template.imageURL}
+                                templateId={template.id} // Pass templateId as a prop
+                            />
+                        ))}
                     </div>
                 </div>
             </section>
@@ -48,7 +48,7 @@ const Templates = () => {
     );
 };
 
-const ProjectCard = ({ title, description, imageURL }) => {
+const ProjectCard = ({ title, description, imageURL, templateId }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
@@ -62,7 +62,9 @@ const ProjectCard = ({ title, description, imageURL }) => {
             </div>
             {isHovered && (
                 <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50">
-                    <Button color="primary"  className="mt-5">Use this templates</Button>
+                    <Link href={`/templates/${templateId}`} passHref>
+                        <Button color="primary" className="mt-5">Use this templates</Button>
+                    </Link>
                 </div>
             )}
         </div>

@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, NavbarMenuToggle, NavbarMenu, NavbarMenuItem, Link, Button } from "@nextui-org/react";
 // import { AcmeLogo } from "./AcmeLogo.jsx";
 import Image from "next/image";
-import Login from "@/components/login/Page";
-import Signup from "@/components/signup/Page";
 import { Link as ScrollLink, animateScroll as scroll } from "react-scroll";
 import { getSession, signOut } from "next-auth/react";
 import { Avatar } from "@nextui-org/react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, } from "@nextui-org/react";
+import Login from "../login/Page";
+import Signup from "../signup/Page";
 
 
 export default function Header() {

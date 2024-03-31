@@ -3,10 +3,11 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import Header from "@/components/navbar/Page";
-import Footer from "@/components/footer/Page";
 import { SessionProvider } from 'next-auth/react';
+import Header from "../components/navbar/Page";
+import Footer from "../components/footer/Page";
 import { siteMetadata } from "./SitMetaData";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
