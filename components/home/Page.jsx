@@ -1,5 +1,5 @@
 import Image from "next/image";
-import banner from "../../public/assets/banner2 (1).png";
+import banner from "../../public/assets/banner2__1_-removebg.png";
 import { Code } from "@nextui-org/react";
 import Dollar from "../../public/assets/icons8-dollar-30.png"
 import About from "../about/Page";
@@ -11,8 +11,8 @@ export default function Home() {
 
     return (
         <>
-            <main id="Home" className="flex flex-col lg:flex-row justify-center items-center bg-linear-gradient pt-20 px-5">
-                <div className="lg:w-1/2 lg:pr-10 flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
+            <main id="Home" className="flex flex-col lg:flex-row justify-center items-center bg-linear-gradient pt-20 lg:px-5">
+                <div className="lg:w-1/2 lg:pr-10  flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
                     <Code size="md" radius="lg" color="primary" className="flex items-center mb-4 lg:ml-5 lg:mb-0 pr-5">
                         <Image src={Dollar} width={20} height={20} className="mr-2" />
                         <span className="lg:block text-sm">Discover The Easiest ways to Build Your CV!</span>

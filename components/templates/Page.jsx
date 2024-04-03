@@ -1,21 +1,24 @@
-"use client";
+"use client"
 
 import { useState } from "react";
 import Link from "next/link";
 import ColoredDots from "../style/ColoredDots ";
 import BackgroundImage from "../../public/assets/benefits-bg.svg"
-// import CV1 from "../../public/assets/demo-1.png"
-// import CV2 from "../../public/assets/demo-2.png"
-// import CV3 from "../../public/assets/demo-3.png"
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
 
 const Templates = () => {
     const templates = [
-        { id: 'cv1', imageURL: '/assets/demo-1.png' },
-        { id: 'cv2', imageURL: '/assets/demo-2.png' },
-        { id: 'cv3', imageURL: '/assets/demo-3.png' },
+        { id: 'cv1', imageURL: '/assets/Resume.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
+        { id: 'cv2', imageURL: '/assets/Resume2.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
+        { id: 'cv3', imageURL: '/assets/Resume3.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
     ];
+
+    const handleTemplateClick = (url) => {
+        // Redirect the user to the specified URL
+        window.location.href = url;
+    };
+
     return (
         <div id="Templates">
             <section className="bg-white antialiased bg-cover " style={{ backgroundImage: `url('/assets/ring-bg.png')`, backgroundRepeat: 'no-repeat' }}>
@@ -38,7 +41,7 @@ const Templates = () => {
                             <ProjectCard
                                 key={template.id}
                                 imageURL={template.imageURL}
-                                templateId={template.id} // Pass templateId as a prop
+                                onClick={() => handleTemplateClick(template.url)}
                             />
                         ))}
                     </div>
@@ -48,23 +51,22 @@ const Templates = () => {
     );
 };
 
-const ProjectCard = ({ title, description, imageURL, templateId }) => {
+const ProjectCard = ({ title, description, imageURL, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
 
     return (
         <div
-            className="space-y-4 border border-2 border-gray-100 rounded-lg p-5 shadow-xl hover:shadow-2xl relative"
+            className="space-y-4 border cursor-pointer border-2 border-gray-100 rounded-lg p-5 shadow-xl hover:shadow-2xl relative"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
+            onClick={onClick}
         >
-            <div className="flex justify-center">
-                <Image src={imageURL} width={250} height={250} />
+            <div className="flex justify-center ">
+                <Image src={imageURL} width={300} height={250} />
             </div>
             {isHovered && (
-                <div className="absolute inset-0 flex justify-center items-center bg-black bg-opacity-50">
-                    <Link href={`/templates/${templateId}`} passHref>
-                        <Button color="primary" className="mt-5">Use this templates</Button>
-                    </Link>
+                <div className="absolute inset-0 flex justify-center items-center ">
+                    <Button color="primary" className="mt-5" onClick={onClick}>Use this templates</Button>
                 </div>
             )}
         </div>
