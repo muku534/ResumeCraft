@@ -1,14 +1,50 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Checkbox, Input, Link } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
-// import MailIcon from "../MailIcon"; // Assuming MailIcon is exported from "../MailIcon.jsx"
-// import LockIcon from "../LockIcon";
 import Image from "next/image";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useSession } from "next-auth/react";
+import { auth } from "@/app/firebase";
+import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
+import { db } from "@/app/firebase";
+import { getSession, signOut } from "next-auth/react";
 
 export default function Login({ isOpen, onOpenChange }) {
+    const [user, setUser] = useState();
+    const { data: session, status } = useSession();
+    console.log("session", session)
+
+    const signInWithGoogle = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Store user data in Firestore
+            const userRef = doc(db, 'Users', user.uid);
+            await setDoc(userRef, {
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                lastSignInTime: new Date().toISOString(),
+                // Add any other user data you want to store
+            });
+
+            console.log("Logged in user:", user);
+            onOpenChange(false)
+        } catch (error) {
+            console.error("Google sign-in error: ", error);
+            // Handle sign-in error
+        }
+    };
+
+
     const signInWithGitHub = () => {
         signIn('github'); // Specify the provider ('github') you want to sign in with
     };
+
+
+
     return (
         <Modal
             isOpen={isOpen}
@@ -62,7 +98,12 @@ export default function Login({ isOpen, onOpenChange }) {
                             </div>
                             Sign in with GitHub
                         </Button>
-
+                        <Button color="dark" onClick={signInWithGoogle} className="flex items-center bg-gray-900 text-white px-4 py-2 rounded-md hover:bg-gray-800 focus:outline-none focus:ring focus:ring-gray-400 mx-10 my-2">
+                            <div className="mr-2">
+                                {/* <Image src="/assets/Google.png" alt="Google Logo" width={24} height={24} className="filter invert" /> */}
+                            </div>
+                            Sign in with Google
+                        </Button>
                     </>
                 )}
             </ModalContent>

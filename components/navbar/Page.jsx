@@ -10,14 +10,27 @@ import { Avatar } from "@nextui-org/react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, } from "@nextui-org/react";
 import Login from "../login/Page";
 import Signup from "../signup/Page";
-
+import { auth } from "@/app/firebase";
 
 export default function Header() {
+    const [user, setUser] = useState(null);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
     const [isSignUpModalOpen, setIsSignUpModalOpen] = useState(false);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+
+
+    auth.onAuthStateChanged((currentUser) => {
+        if (currentUser) {
+            // User is signed in.
+            setUser(currentUser);
+            // console.log("image",user.photoURL);
+        } else {
+            // No user is signed in.
+            setUser(null);
+        }
+    });
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,6 +68,17 @@ export default function Header() {
 
     const handleCloseSignUpModal = () => {
         setIsSignUpModalOpen(false);
+    };
+
+    const handleSignOut = async () => {
+        try {
+            await auth.signOut();
+            setUser(null);
+            console.log("User signed out");
+        } catch (error) {
+            console.error("Sign out error: ", error);
+            // Handle sign-out error
+        }
     };
 
 
@@ -124,15 +148,29 @@ export default function Header() {
                 </NavbarItem>
             </NavbarContent>
             <NavbarContent justify="end">
-                {session ? (
+                {user ? (
+                    // <NavbarItem>
+                    //     <Dropdown>
+                    //         <DropdownTrigger>
+                    //             <Avatar isBordered src={session?.user?.image} className="cursor-pointer" />
+                    //         </DropdownTrigger>
+                    //         <DropdownMenu aria-label="Static Actions">
+                    //             <DropdownItem key="new">Dashboard</DropdownItem>
+                    //             <DropdownItem key="delete" className="text-danger" color="danger" onClick={signOut}>
+                    //                 Log Out
+                    //             </DropdownItem>
+                    //         </DropdownMenu>
+                    //     </Dropdown>
+                    //     {/* <Image src={session?.user?.image} alt="User Avatar" width={40} height={40} className="rounded-full" /> */}
+                    // </NavbarItem>
                     <NavbarItem>
                         <Dropdown>
                             <DropdownTrigger>
-                                <Avatar isBordered src={session?.user?.image} className="cursor-pointer" />
+                                <Avatar isBordered src={user?.photoURL} className="cursor-pointer" />
                             </DropdownTrigger>
                             <DropdownMenu aria-label="Static Actions">
                                 <DropdownItem key="new">Dashboard</DropdownItem>
-                                <DropdownItem key="delete" className="text-danger" color="danger" onClick={signOut}>
+                                <DropdownItem key="delete" className="text-danger" color="danger" onClick={handleSignOut}>
                                     Log Out
                                 </DropdownItem>
                             </DropdownMenu>

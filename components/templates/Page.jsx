@@ -1,23 +1,73 @@
 "use client"
 
-import { useState } from "react";
-import Link from "next/link";
-import ColoredDots from "../style/ColoredDots ";
-import BackgroundImage from "../../public/assets/benefits-bg.svg"
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
+import { auth, db, storage } from "@/app/firebase";
+import { useRouter } from "next/router";
+import ColoredDots from "../style/ColoredDots ";
 
 const Templates = () => {
-    const templates = [
-        { id: 'cv1', imageURL: '/assets/Resume.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
-        { id: 'cv2', imageURL: '/assets/Resume2.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
-        { id: 'cv3', imageURL: '/assets/Resume3.png', url: 'https://www.overleaf.com/7931362317mwmmgmgkstrd#07212' },
-    ];
+    const [user, setUser] = useState(null);
+    const [templates, setTemplates] = useState([]);
+    // const router = useRouter();
 
-    const handleTemplateClick = (url) => {
-        // Redirect the user to the specified URL
-        window.location.href = url;
+    useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
+        // Fetch templates from Firebase Storage
+        const fetchTemplates = async () => {
+            const templatesRef = storage.ref().child("Resume Templates");
+            const templatesList = await templatesRef.listAll();
+
+            const templatesData = await Promise.all(
+                templatesList.items.map(async (item) => {
+                    const imageURL = await item.getDownloadURL();
+                    console.log("this is the resume :", item.name);
+                    return {
+                        id: item.name,
+                        // imageURL,
+                    };
+                })
+            );
+
+            setTemplates(templatesData);
+        };
+
+        fetchTemplates();
+    }, []);
+
+    const handleTemplateClick = async (templateId) => {
+        if (!user) {
+            alert("Please login first.");
+            return;
+        }
+
+        try {
+            // Fetch the selected template PDF from Firebase Storage
+            const pdfRef = storage.ref().child("Resume Templates").child(templateId);
+            const pdfURL = await pdfRef.getDownloadURL();
+
+            // Store a copy of the selected template in the user's collection in Firestore
+            await db.collection("users").doc(user.uid).set({
+                templateId,
+                templatePDF: pdfURL
+            });
+
+            // Redirect the user to the editor page
+            // router.push("/editor");
+        } catch (error) {
+            console.error("Error selecting template:", error);
+            alert("Failed to select template. Please try again later.");
+        }
     };
+
 
     return (
         <div id="Templates">
