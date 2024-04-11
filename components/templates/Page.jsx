@@ -4,69 +4,117 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import { auth, db, storage } from "@/app/firebase";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import ColoredDots from "../style/ColoredDots ";
+import { ref, listAll, getDownloadURL } from "firebase/storage"; // Updated imports
+import { Document, Page, pdfjs } from 'react-pdf';
+import { getSession, signOut } from "next-auth/react";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
 
 const Templates = () => {
+    // State variables to manage user and templates
     const [user, setUser] = useState(null);
     const [templates, setTemplates] = useState([]);
-    // const router = useRouter();
+    const [session, setSession] = useState(null);
+    const [loading, setLoading] = useState(true);
 
+    auth.onAuthStateChanged((currentUser) => {
+        if (currentUser) {
+            // User is signed in.
+            setUser(currentUser);
+            // console.log("image",user.photoURL);
+        } else {
+            // No user is signed in.
+            setUser(null);
+        }
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const session = await getSession();
+            setSession(session);
+            setLoading(false);
+        };
+        fetchData();
+    }, []);
+
+    // Fetch user data on component mount
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
             setUser(user);
         });
-
         return () => unsubscribe();
     }, []);
 
     useEffect(() => {
-        // Fetch templates from Firebase Storage
         const fetchTemplates = async () => {
-            const templatesRef = storage.ref().child("Resume Templates");
-            const templatesList = await templatesRef.listAll();
-
-            const templatesData = await Promise.all(
-                templatesList.items.map(async (item) => {
-                    const imageURL = await item.getDownloadURL();
-                    console.log("this is the resume :", item.name);
-                    return {
-                        id: item.name,
-                        // imageURL,
-                    };
-                })
-            );
-
-            setTemplates(templatesData);
+            try {
+                const templatesRef = ref(storage, "Resume Templates");
+                const templatesList = await listAll(templatesRef);
+                const templatesData = await Promise.all(
+                    templatesList.items.map(async (item) => {
+                        const pdfURL = await getDownloadURL(item);
+                        const thumbnail = await generateThumbnail(pdfURL);
+                        return {
+                            id: item.name,
+                            pdfURL,
+                            thumbnail
+                        };
+                    })
+                );
+                setTemplates(templatesData);
+            } catch (error) {
+                console.error("Error fetching templates:", error);
+            }
         };
 
         fetchTemplates();
     }, []);
 
-    const handleTemplateClick = async (templateId) => {
+    const generateThumbnail = async (pdfURL) => {
+        try {
+            const pdf = await pdfjs.getDocument(pdfURL).promise;
+            const page = await pdf.getPage(1);
+            const scale = 0.5;
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+            const thumbnailURL = canvas.toDataURL();
+            return thumbnailURL;
+        } catch (error) {
+            console.error("Error generating thumbnail:", error);
+            return null;
+        }
+    };
+
+    const handleTemplateClick = async (pdfURL) => {
         if (!user) {
             alert("Please login first.");
             return;
         }
-
         try {
-            // Fetch the selected template PDF from Firebase Storage
-            const pdfRef = storage.ref().child("Resume Templates").child(templateId);
-            const pdfURL = await pdfRef.getDownloadURL();
-
-            // Store a copy of the selected template in the user's collection in Firestore
-            await db.collection("users").doc(user.uid).set({
-                templateId,
-                templatePDF: pdfURL
-            });
-
-            // Redirect the user to the editor page
-            // router.push("/editor");
+            // await db.collection("users").doc(user.uid).update({
+            //     templatePDF: pdfURL
+            // });
+            // router.push(`/templates?pdfURL=${encodeURIComponent(pdfURL)}`);
+            alert(pdfURL)
         } catch (error) {
             console.error("Error selecting template:", error);
-            alert("Failed to select template. Please try again later.");
+            alert("Failed to select template. Please try again later. Error: " + error.message);
         }
     };
+
+
 
 
     return (
@@ -90,9 +138,12 @@ const Templates = () => {
                         {templates.map((template) => (
                             <ProjectCard
                                 key={template.id}
-                                imageURL={template.imageURL}
-                                onClick={() => handleTemplateClick(template.url)}
+                                templateId={template.id}
+                                thumbnail={template.thumbnail}
+                                pdfURL={template.pdfURL} // Pass pdfURL as a prop
+                                onClick={() => handleTemplateClick(template.pdfURL)}
                             />
+
                         ))}
                     </div>
                 </div>
@@ -101,22 +152,37 @@ const Templates = () => {
     );
 };
 
-const ProjectCard = ({ title, description, imageURL, onClick }) => {
+const ProjectCard = ({ title, description, thumbnail, templateId, pdfURL, onClick }) => {
     const [isHovered, setIsHovered] = useState(false);
+    const [numPages, setNumPages] = useState(null);
+    const [pageNumber, setPageNumber] = useState(1);
+
+    function onDocumentLoadSuccess({ numPages }) {
+        setNumPages(numPages);
+    }
 
     return (
         <div
             className="space-y-4 border cursor-pointer border-2 border-gray-100 rounded-lg p-5 shadow-xl hover:shadow-2xl relative"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            onClick={onClick}
+        // onClick={onClick}
         >
-            <div className="flex justify-center ">
-                <Image src={imageURL} width={300} height={250} />
+            {/* <div className="flex justify-center">
+                <Image src={thumbnail} width={300} height={250} alt="Thumbnail" />
+            </div> */}
+            <div className="flex justify-center">
+                <iframe src={pdfURL} width="100%" height="400px" title="" />
             </div>
+            {/* <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
+                <Page pageNumber={pageNumber} />
+            </Document> */}
             {isHovered && (
                 <div className="absolute inset-0 flex justify-center items-center ">
-                    <Button color="primary" className="mt-5" onClick={onClick}>Use this templates</Button>
+                    <Link href={`/templates/${templateId}?pdfURL=${encodeURIComponent(pdfURL)}`} passHref>
+                        <Button color="primary" className="mt-5">Use this templates</Button>
+                    </Link>
+                    {/* <Button color="primary" className="mt-5" onClick={onClick}>Use this templates</Button> */}
                 </div>
             )}
         </div>
