@@ -7,9 +7,10 @@ import { auth, db, storage } from "@/app/firebase";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import ColoredDots from "../style/ColoredDots ";
-import { ref, listAll, getDownloadURL } from "firebase/storage"; // Updated imports
+import { ref, listAll, getDownloadURL, uploadBytes } from "firebase/storage"; // Updated imports
 import { Document, Page, pdfjs } from 'react-pdf';
 import { getSession, signOut } from "next-auth/react";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -49,19 +50,42 @@ const Templates = () => {
         return () => unsubscribe();
     }, []);
 
+    // useEffect(() => {
+    //     const fetchTemplates = async () => {
+    //         try {
+    //             const templatesRef = ref(storage, "ResumeTemplates");
+    //             const templatesList = await listAll(templatesRef);
+    //             const templatesData = await Promise.all(
+    //                 templatesList.items.map(async (item) => {
+    //                     const pdfURL = await getDownloadURL(item);
+    //                     return {
+    //                         id: item.name,
+    //                         pdfURL,
+    //                     };
+    //                 })
+    //             );
+    //             setTemplates(templatesData);
+    //         } catch (error) {
+    //             console.error("Error fetching templates:", error);
+    //         }
+    //     };
+
+    //     fetchTemplates();
+    // }, []);
+
     useEffect(() => {
         const fetchTemplates = async () => {
             try {
-                const templatesRef = ref(storage, "Resume Templates");
+                const templatesRef = ref(storage, "ResumeTemplates");
                 const templatesList = await listAll(templatesRef);
                 const templatesData = await Promise.all(
                     templatesList.items.map(async (item) => {
                         const pdfURL = await getDownloadURL(item);
-                        const thumbnail = await generateThumbnail(pdfURL);
+                        // Directly pass pdfURL to the proxy route
+                        const proxyURL = `/api/proxyPdf?url=${encodeURIComponent(pdfURL)}`;
                         return {
                             id: item.name,
-                            pdfURL,
-                            thumbnail
+                            pdfURL: proxyURL, // Updated pdfURL with the proxy URL
                         };
                     })
                 );
@@ -74,46 +98,35 @@ const Templates = () => {
         fetchTemplates();
     }, []);
 
-    const generateThumbnail = async (pdfURL) => {
-        try {
-            const pdf = await pdfjs.getDocument(pdfURL).promise;
-            const page = await pdf.getPage(1);
-            const scale = 0.5;
-            const viewport = page.getViewport({ scale });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-            const renderContext = {
-                canvasContext: context,
-                viewport: viewport
-            };
-            await page.render(renderContext).promise;
-            const thumbnailURL = canvas.toDataURL();
-            return thumbnailURL;
-        } catch (error) {
-            console.error("Error generating thumbnail:", error);
-            return null;
-        }
-    };
-
     const handleTemplateClick = async (pdfURL) => {
         if (!user) {
-            alert("Please login first.");
+            alert("User authentication failed. Please try again.");
             return;
         }
         try {
-            // await db.collection("users").doc(user.uid).update({
-            //     templatePDF: pdfURL
-            // });
-            // router.push(`/templates?pdfURL=${encodeURIComponent(pdfURL)}`);
-            alert(pdfURL)
+            // Check if the user exists in the users collection
+            const userDoc = await getDoc(doc(db, "Users", user.uid));
+            if (!userDoc.exists()) {
+                alert("User not found in the database. Please try again.");
+                return;
+            }
+
+            // Proceed with handling the template click
+            const response = await fetch(pdfURL);
+            if (!response.ok) {
+                throw new Error('Failed to fetch PDF file.');
+            }
+            const pdfBlob = await response.blob();
+            const storageRef = ref(storage, `${user.uid}/${pdfURL}.pdf`);
+            await uploadBytes(storageRef, pdfBlob);
+            const uploadedPdfURL = await getDownloadURL(storageRef);
+            await setDoc(doc(db, "Users", user.uid), { templatePDF: uploadedPdfURL }, { merge: true });
+            alert("PDF uploaded and URL stored successfully!");
         } catch (error) {
-            console.error("Error selecting template:", error);
-            alert("Failed to select template. Please try again later. Error: " + error.message);
+            console.error("Error handling template click:", error);
+            alert("Failed to handle template click. Please try again later. Error: " + error.message);
         }
     };
-
 
 
 
@@ -143,7 +156,6 @@ const Templates = () => {
                                 pdfURL={template.pdfURL} // Pass pdfURL as a prop
                                 onClick={() => handleTemplateClick(template.pdfURL)}
                             />
-
                         ))}
                     </div>
                 </div>
@@ -163,26 +175,33 @@ const ProjectCard = ({ title, description, thumbnail, templateId, pdfURL, onClic
 
     return (
         <div
-            className="space-y-4 border cursor-pointer border-2 border-gray-100 rounded-lg p-5 shadow-xl hover:shadow-2xl relative"
+            className="space-y-4 border cursor-pointer border-2 border-gray-100 rounded-lg  shadow-xl hover:shadow-2xl relative"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         // onClick={onClick}
         >
             {/* <div className="flex justify-center">
                 <Image src={thumbnail} width={300} height={250} alt="Thumbnail" />
-            </div> */}
+            </div> 
+        
             <div className="flex justify-center">
                 <iframe src={pdfURL} width="100%" height="400px" title="" />
             </div>
-            {/* <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
-                <Page pageNumber={pageNumber} />
-            </Document> */}
+        */}
+
+            <div className="pdf-container">
+                <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
+                    <Page pageNumber={1} renderTextLayer={false} width={250} scale={1.5} />
+                </Document>
+            </div>
+
+
             {isHovered && (
                 <div className="absolute inset-0 flex justify-center items-center ">
-                    <Link href={`/templates/${templateId}?pdfURL=${encodeURIComponent(pdfURL)}`} passHref>
+                    {/* <Link href={`/templates/${templateId}?pdfURL=${encodeURIComponent(pdfURL)}`} passHref>
                         <Button color="primary" className="mt-5">Use this templates</Button>
-                    </Link>
-                    {/* <Button color="primary" className="mt-5" onClick={onClick}>Use this templates</Button> */}
+                    </Link>*/}
+                    <Button color="primary" className="mt-5" onClick={onClick}>Use this templates</Button>
                 </div>
             )}
         </div>

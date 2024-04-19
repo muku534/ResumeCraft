@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Checkbox, Input, Link } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
 import Image from "next/image";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
 import { useSession } from "next-auth/react";
 import { auth } from "@/app/firebase";
 import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
@@ -11,8 +11,8 @@ import { getSession, signOut } from "next-auth/react";
 
 export default function Login({ isOpen, onOpenChange }) {
     const [user, setUser] = useState();
-    const { data: session, status } = useSession();
-    console.log("session", session)
+    // const { data: session, status } = useSession();
+    // console.log("session", session)
 
     const signInWithGoogle = async () => {
         try {
@@ -38,10 +38,29 @@ export default function Login({ isOpen, onOpenChange }) {
         }
     };
 
+    const signInWithGitHub = async () => {
+        try {
+            const provider = new GithubAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
 
-    const signInWithGitHub = () => {
-        signIn('github'); // Specify the provider ('github') you want to sign in with
-    };
+            //store user data in firestore
+            const userRef = doc(db, 'Users', user.uid);
+            await setDoc(userRef, {
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                lastSignInTime: new Date().toISOString(),
+            });
+
+            console.log("Logged in user:", user);
+            onOpenChange(false); //close modal after login
+        } catch (error) {
+            console.error("Github sign-in error: ", error);
+            // Handle sign-in error 
+        }
+    }
+
 
 
 
