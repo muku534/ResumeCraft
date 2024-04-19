@@ -5,12 +5,13 @@ import Image from "next/image";
 import { Button } from "@nextui-org/react";
 import { auth, db, storage } from "@/app/firebase";
 import Link from "next/link";
-import { useRouter } from "next/router";
+// import { useRouter } from "next/router";
 import ColoredDots from "../style/ColoredDots ";
 import { ref, listAll, getDownloadURL, uploadBytes } from "firebase/storage"; // Updated imports
 import { Document, Page, pdfjs } from 'react-pdf';
 import { getSession, signOut } from "next-auth/react";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
 
@@ -21,6 +22,7 @@ const Templates = () => {
     const [templates, setTemplates] = useState([]);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     auth.onAuthStateChanged((currentUser) => {
         if (currentUser) {
@@ -117,11 +119,18 @@ const Templates = () => {
                 throw new Error('Failed to fetch PDF file.');
             }
             const pdfBlob = await response.blob();
-            const storageRef = ref(storage, `${user.uid}/${pdfURL}.pdf`);
+
+            // Upload the PDF file to Firebase Storage
+            const storageRef = ref(storage, `${user.uid}/uploaded_template.pdf`);
             await uploadBytes(storageRef, pdfBlob);
             const uploadedPdfURL = await getDownloadURL(storageRef);
+
+            // Store the uploaded PDF URL in the user's document
             await setDoc(doc(db, "Users", user.uid), { templatePDF: uploadedPdfURL }, { merge: true });
-            alert("PDF uploaded and URL stored successfully!");
+            console.log("PDF uploaded and URL stored successfully!");
+
+            // Navigate the user to the editor page immediately and pass the PDF URL as a query parameter
+            router.push(`/editor?pdfURL=${encodeURIComponent(uploadedPdfURL)}`);
         } catch (error) {
             console.error("Error handling template click:", error);
             alert("Failed to handle template click. Please try again later. Error: " + error.message);

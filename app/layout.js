@@ -7,7 +7,8 @@ import { SessionProvider } from 'next-auth/react';
 import Header from "../components/navbar/Page";
 import Footer from "../components/footer/Page";
 import { siteMetadata } from "./SitMetaData";
-
+import { useState, useEffect } from 'react';
+import LottieAnimation from "./lottieanimation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,6 +18,14 @@ const inter = Inter({ subsets: ["latin"] });
 // };
 
 export default function RootLayout({ children, session }) {
+  const [showAnimation, setShowAnimation] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowAnimation(false);
+    }, 4000); // 3 seconds delay
+
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <html lang="en">
       <head>
@@ -26,9 +35,14 @@ export default function RootLayout({ children, session }) {
       <body className={inter.className}>
         <SessionProvider session={session}>
           <Providers>
-            <Header />
-            {children}
-            <Footer />
+            {showAnimation && (
+              <div className={`transition-opacity ${showAnimation ? 'opacity-100' : 'opacity-0'} duration-1000 ease-in-out fixed inset-0 flex items-center justify-center bg-white z-50`}>
+                <LottieAnimation />
+              </div>
+            )}
+            <div className={`transition-opacity ${showAnimation ? 'opacity-0' : 'opacity-100'} duration-1000 ease-in-out`}>
+              {children}
+            </div>
           </Providers>
         </SessionProvider>
       </body>
