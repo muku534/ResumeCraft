@@ -22,7 +22,7 @@ export default function RootLayout({ children, session }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowAnimation(false);
-    }, 4000); // 3 seconds delay
+    }, 4200); // 3 seconds delay
 
     return () => clearTimeout(timer);
   }, []);

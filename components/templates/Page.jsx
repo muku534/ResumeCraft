@@ -198,11 +198,9 @@ const ProjectCard = ({ title, description, thumbnail, templateId, pdfURL, onClic
             </div>
         */}
 
-            <div className="pdf-container">
-                <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
-                    <Page pageNumber={1} renderTextLayer={false} width={250} scale={1.5} />
-                </Document>
-            </div>
+            <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
+                <Page pageNumber={1} renderTextLayer={false} renderAnnotationLayer={false} width={350} scale={1} />
+            </Document>
 
 
             {isHovered && (
