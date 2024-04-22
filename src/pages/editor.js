@@ -1,3 +1,4 @@
+// EditorPage.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -8,15 +9,16 @@ import { getSession, signOut } from "next-auth/react";
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 const EditorPage = () => {
-    const router = useRouter();
     const [user, setUser] = useState(null);
-    const [session, setSession] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [templateIndex, setTemplateIndex] = useState(0);
-    const [templates, setTemplates] = useState([]);
+    const router = useRouter();
     const [pdfURL, setPdfURL] = useState('');
     const [numPages, setNumPages] = useState(null);
     const [pageNumber, setPageNumber] = useState(1);
+    const [templateIndex, setTemplateIndex] = useState(0);
+    const [templates, setTemplates] = useState([]);
+    const [session, setSession] = useState(null);
+    const [loading, setLoading] = useState(true);
+
     const [formData, setFormData] = useState({
         // Add form data fields
         name: 'John Doe',
@@ -113,15 +115,15 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
         // Extract pdfURL from query parameters
         const { pdfURL } = router.query;
         if (pdfURL) {
-            fetchTemplates();
+            fetchPDF(pdfURL);
         }
     }, [router.query]);
 
-    useEffect(() => {
-        if (templates.length > 0) {
-            fetchPDF(templates[templateIndex]);
-        }
-    }, [templateIndex, templates]);
+    // useEffect(() => {
+    //     if (templates.length > 0) {
+    //         fetchPDF(templates[templateIndex]);
+    //     }
+    // }, [templateIndex, templates]);
 
     useEffect(() => {
         const fetchPdfURL = async () => {
@@ -132,7 +134,7 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
                 if (userDocSnapshot.exists()) {
                     const userData = userDocSnapshot.data();
                     if (userData.templatePDF) {
-                        setTemplates(userData.templatePDF);
+                        fetchPDF(userData.templatePDF);
                     } else {
                         console.log("No PDF URL found in the user's document");
                     }
@@ -149,9 +151,12 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
 
     const fetchPDF = async (pdfURL) => {
         try {
-            const pdfRef = storage.refFromURL(pdfURL);
-            const pdfUrl = await pdfRef.getDownloadURL();
-            setPdfURL(pdfUrl);
+            const response = await fetch(`/api/proxyPdf?url=${encodeURIComponent(pdfURL)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch PDF file.');
+            }
+            const pdfBlob = await response.blob();
+            setPdfURL(URL.createObjectURL(pdfBlob));
         } catch (error) {
             console.error("Error fetching PDF:", error);
         }
@@ -161,22 +166,13 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
         setNumPages(numPages);
     }
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-        updatePDF(); // Call updatePDF on each input change
-    };
-
     const updatePDF = async () => {
         // Update PDF with new data
         try {
             const userId = user.uid; // Get current user's ID
             const userDocRef = doc(db, "Users", userId);
             await updateDoc(userDocRef, {
-                templateData: formData
+                templatePDF: formData
             });
             const userDocSnapshot = await getDoc(userDocRef);
             if (userDocSnapshot.exists()) {
@@ -194,29 +190,21 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
         }
     };
 
-    const fetchTemplates = async () => {
-        try {
-            const userId = user.uid; // Get current user's ID
-            const userDocRef = doc(db, "Users", userId);
-            const userDocSnapshot = await getDoc(userDocRef);
-            if (userDocSnapshot.exists()) {
-                const userData = userDocSnapshot.data();
-                if (userData.templatePDF) {
-                    setTemplates(userData.templatePDF);
-                } else {
-                    console.log("No PDF URL found in the user's document");
-                }
-            } else {
-                console.log("User document does not exist");
-            }
-        } catch (error) {
-            console.error("Error fetching PDF URL:", error);
-        }
-    };
 
     const handleTemplateChange = (index) => {
         setTemplateIndex(index);
     };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+        updatePDF(); // Call updatePDF on each input change
+    };
+
+
 
     return (
         <div>
@@ -413,11 +401,12 @@ Charts - Social Media - Email Marketing - User Experience - Digital Strategy - C
                             onChange={handleInputChange}
                         />
                     </form>
-                    {templates.map((template, index) => (
-                        <button key={index} onClick={() => handleTemplateChange(index)}>
-                            Template {index + 1}
+                    {templates && (
+                        <button onClick={() => handleTemplateChange(0)}>
+                            Template 1
                         </button>
-                    ))}
+                    )}
+
                 </div>
             )}
         </div>
