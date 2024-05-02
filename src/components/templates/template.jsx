@@ -1,11 +1,7 @@
 
 
 const Template = () => {
-    <div className="mt-40 mx-auto max-w-3xl px-4 py-8 shadow-xl">
-        <Head>
-            <title>Resume | FIRSTNAME LASTNAME</title>
-        </Head>
-
+    <div className="mt-40 mx-auto max-w-3xl px-4 py-8 shadow-xl">     
         {/* Header section */}
         <header className="text-center">
             <h1 className="text-3xl font-bold">FIRSTNAME LASTNAME</h1>
