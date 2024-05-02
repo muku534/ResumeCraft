@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Button } from "@nextui-org/react";
-import { auth, db, storage } from "@/app/firebase";
+import { auth, db, storage } from "@/src/app/firebase";
 import Link from "next/link";
 // import { useRouter } from "next/router";
 import ColoredDots from "../style/ColoredDots ";
@@ -130,14 +130,13 @@ const Templates = () => {
             console.log("PDF uploaded and URL stored successfully!");
 
             // Navigate the user to the editor page immediately and pass the PDF URL as a query parameter
+            // router.push(`/editor?pdfURL=${encodeURIComponent(uploadedPdfURL)}`);
             router.push(`/editor?pdfURL=${encodeURIComponent(uploadedPdfURL)}`);
         } catch (error) {
             console.error("Error handling template click:", error);
             alert("Failed to handle template click. Please try again later. Error: " + error.message);
         }
     };
-
-
 
     return (
         <div id="Templates">

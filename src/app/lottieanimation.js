@@ -1,7 +1,7 @@
 // LottieAnimation.js
 
 import Lottie from 'react-lottie';
-import animationData from '../public/assets/Animation - 1713557513026.json';
+import animationData from '../../public/assets/Animation - 1713557513026.json';
 
 const LottieAnimation = () => {
     const defaultOptions = {

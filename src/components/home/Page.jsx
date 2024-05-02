@@ -1,7 +1,7 @@
 import Image from "next/image";
-import banner from "../../public/assets/banner2__1_-removebg.png";
+import banner from "../../../public/assets/banner2__1_-removebg.png";
 import { Code } from "@nextui-org/react";
-import Dollar from "../../public/assets/icons8-dollar-30.png"
+import Dollar from "../../../public/assets/icons8-dollar-30.png"
 import About from "../about/Page";
 import { Button } from "@nextui-org/react";
 import Templates from "../templates/Page";

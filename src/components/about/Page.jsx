@@ -1,13 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import Thumb from "../../public/assets/d1.png";
-import Step from "../../public/assets/d2.png";
-import Approve from "../../public/assets/d3.png";
+import Thumb from "../../../public/assets/d1.png";
+import Step from "../../../public/assets/d2.png";
+import Approve from "../../../public/assets/d3.png";
 import { Button } from "@nextui-org/react";
-import CV from "../../public/assets/cv.png";
-import Correct from "../../public/assets/icons8-correct-48.png";
+import CV from "../../../public/assets/cv.png";
+import Correct from "../../../public/assets/icons8-correct-48.png";
 import ColoredDots from "../style/ColoredDots ";
-import BackgroundImage from "../../public/assets/benefits-bg.svg"
+import BackgroundImage from "../../../public/assets/benefits-bg.svg"
 
 const About = () => {
     return (

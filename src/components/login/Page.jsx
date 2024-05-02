@@ -4,9 +4,9 @@ import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
 import { useSession } from "next-auth/react";
-import { auth } from "@/app/firebase";
+import { auth } from "@/src/app/firebase";
 import { collection, addDoc, doc, setDoc, getDoc } from "firebase/firestore";
-import { db } from "@/app/firebase";
+import { db } from "@/src/app/firebase";
 import { getSession, signOut } from "next-auth/react";
 
 export default function Login({ isOpen, onOpenChange }) {
@@ -19,51 +19,49 @@ export default function Login({ isOpen, onOpenChange }) {
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-
-            // Store user data in Firestore
-            const userRef = doc(db, 'Users', user.uid);
-            await setDoc(userRef, {
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                lastSignInTime: new Date().toISOString(),
-                // Add any other user data you want to store
-            });
-
+    
             console.log("Logged in user:", user);
-            onOpenChange(false)
+            onOpenChange(false);
+    
+            // Check if there's an existing account with the same email
+            const methods = await fetchSignInMethodsForEmail(auth, user.email);
+            if (methods.includes("password")) {
+                // Account exists with password credential, handle account linking
+                const passwordProvider = new EmailAuthProvider();
+                const credential = EmailAuthProvider.credential(user.email, prompt('Please enter your password'));
+                await linkWithCredential(user, credential);
+                console.log("Account linked successfully!");
+            }
         } catch (error) {
             console.error("Google sign-in error: ", error);
             // Handle sign-in error
         }
     };
-
+    
     const signInWithGitHub = async () => {
         try {
             const provider = new GithubAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-
-            //store user data in firestore
-            const userRef = doc(db, 'Users', user.uid);
-            await setDoc(userRef, {
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                lastSignInTime: new Date().toISOString(),
-            });
-
+    
             console.log("Logged in user:", user);
             onOpenChange(false); //close modal after login
+    
+            // Check if there's an existing account with the same email
+            const methods = await fetchSignInMethodsForEmail(auth, user.email);
+            if (methods.includes("password")) {
+                // Account exists with password credential, handle account linking
+                const passwordProvider = new EmailAuthProvider();
+                const credential = EmailAuthProvider.credential(user.email, prompt('Please enter your password'));
+                await linkWithCredential(user, credential);
+                console.log("Account linked successfully!");
+            }
         } catch (error) {
             console.error("Github sign-in error: ", error);
             // Handle sign-in error 
         }
-    }
-
-
-
-
+    };
+    
     return (
         <Modal
             isOpen={isOpen}

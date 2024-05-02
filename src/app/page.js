@@ -1,6 +1,6 @@
-import Header from "@/components/navbar/Page";
+import Footer from "../components/footer/Page";
 import Home from "../components/home/Page";
-import Footer from "@/components/footer/Page";
+import Header from "../components/navbar/Page";
 
 export default function home() {
   return (
@@ -8,7 +8,6 @@ export default function home() {
       <Header />
       <Home />
       <Footer />
-
     </>
   );
 }
