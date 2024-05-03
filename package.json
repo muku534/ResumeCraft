@@ -13,6 +13,7 @@
     "@nextui-org/react": "^2.2.10",
     "firebase": "^10.10.0",
     "framer-motion": "^11.0.20",
+    "jspdf": "^2.5.1",
     "latex.js": "^0.12.6",
     "lottie-web": "^5.12.2",
     "mammoth": "^1.7.1",

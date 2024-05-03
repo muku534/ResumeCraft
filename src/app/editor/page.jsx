@@ -7,7 +7,9 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { auth, db, storage } from "@/src/app/firebase";
 import { getSession, signOut } from "next-auth/react";
 import { Input, Textarea } from "@nextui-org/react";
+import jsPDF from 'jspdf';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react";
+
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 const EditorPage = () => {
@@ -21,8 +23,10 @@ const EditorPage = () => {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const variants = ["flat", "bordered", "underlined", "faded"];
+
     const [formData, setFormData] = useState({
-        name: 'MUKESH PRAJAPATI',
+        name: 'FIRSTNAME LASTNAME',
         phone: '+1(123) 456-7890',
         location: 'San Francisco, CA',
         email: 'contact@ResumeCraft.com',
@@ -88,19 +92,19 @@ const EditorPage = () => {
     });
 
 
-    const handleInputChange = (e, fieldName) => {
-        const { value } = e.target;
-        setFormData(prevFormData => ({
-            ...prevFormData,
-            [fieldName]: value
-        }));
-    };
+    // const handleInputChange = (e, fieldName) => {
+    //     const { value } = e.target;
+    //     setFormData(prevFormData => ({
+    //         ...prevFormData,
+    //         [fieldName]: value
+    //     }));
+    // };
 
     auth.onAuthStateChanged((currentUser) => {
         if (currentUser) {
             // User is signed in.
             setUser(currentUser);
-            // console.log("image",user.photoURL);
+            console.log("User UID:", currentUser.uid); // Log user UID here
         } else {
             // No user is signed in.
             setUser(null);
@@ -124,105 +128,124 @@ const EditorPage = () => {
     //     }
     // }, [router.query]);
 
-    // useEffect(() => {
-    //     if (templates.length > 0) {
-    //         fetchPDF(templates[templateIndex]);
-    //     }
-    // }, [templateIndex, templates]);
+    useEffect(() => {
+        if (templates.length > 0) {
+            fetchPDF(templates[templateIndex]);
+        }
+    }, [templateIndex, templates]);
 
-    // useEffect(() => {
-    //     const fetchPdfURL = async () => {
-    //         try {
-    //             const userId = user.uid; // Get current user's ID
-    //             const userDocRef = doc(db, "Users", userId);
-    //             const userDocSnapshot = await getDoc(userDocRef);
-    //             if (userDocSnapshot.exists()) {
-    //                 const userData = userDocSnapshot.data();
-    //                 if (userData.templatePDF) {
-    //                     fetchPDF(userData.templatePDF);
-    //                 } else {
-    //                     console.log("No PDF URL found in the user's document");
-    //                 }
-    //             } else {
-    //                 console.log("User document does not exist");
-    //             }
-    //         } catch (error) {
-    //             console.error("Error fetching PDF URL:", error);
-    //         }
-    //     };
+    useEffect(() => {
+        const fetchPdfURL = async () => {
+            try {
+                if (user) { // Check if user is not null
+                    const userId = user.uid; // Get current user's ID
+                    const userDocRef = doc(db, "Users", userId);
+                    const userDocSnapshot = await getDoc(userDocRef);
+                    if (userDocSnapshot.exists()) {
+                        const userData = userDocSnapshot.data();
+                        if (userData.templatePDF) {
+                            fetchPDF(userData.templatePDF);
+                        } else {
+                            console.log("No PDF URL found in the user's document");
+                        }
+                    } else {
+                        console.log("User document does not exist");
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching PDF URL:", error);
+            }
+        };
 
-    //     fetchPdfURL();
-    // }, []);
-
-    // const fetchPDF = async (pdfURL) => {
-    //     try {
-    //         const response = await fetch(`/api/proxyPdf?url=${encodeURIComponent(pdfURL)}`);
-    //         if (!response.ok) {
-    //             throw new Error('Failed to fetch PDF file.');
-    //         }
-    //         const pdfBlob = await response.blob();
-    //         setPdfURL(URL.createObjectURL(pdfBlob));
-    //     } catch (error) {
-    //         console.error("Error fetching PDF:", error);
-    //     }
-    // };
-
-    // function onDocumentLoadSuccess({ numPages }) {
-    //     setNumPages(numPages);
-    // }
-
-    // const updatePDF = async () => {
-    //     // Update PDF with new data
-    //     try {
-    //         const userId = user.uid; // Get current user's ID
-    //         const userDocRef = doc(db, "Users", userId);
-    //         await updateDoc(userDocRef, {
-    //             templatePDF: formData
-    //         });
-    //         const userDocSnapshot = await getDoc(userDocRef);
-    //         if (userDocSnapshot.exists()) {
-    //             const userData = userDocSnapshot.data();
-    //             if (userData.templatePDF) {
-    //                 setTemplates(userData.templatePDF);
-    //             } else {
-    //                 console.log("No PDF URL found in the user's document");
-    //             }
-    //         } else {
-    //             console.log("User document does not exist");
-    //         }
-    //     } catch (error) {
-    //         console.error("Error updating PDF:", error);
-    //     }
-    // };
+        fetchPdfURL();
+    }, [user]); // Add user to the dependency array
 
 
-    // const handleTemplateChange = (index) => {
-    //     setTemplateIndex(index);
-    // };
+    const fetchPDF = async (pdfURL) => {
+        try {
+            const response = await fetch(`/api/proxyPdf?url=${encodeURIComponent(pdfURL)}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch PDF file.');
+            }
+            const pdfBlob = await response.blob();
+            setPdfURL(URL.createObjectURL(pdfBlob));
+        } catch (error) {
+            console.error("Error fetching PDF:", error);
+        }
+    };
 
-    // const handleInputChange = (e) => {
-    //     const { name, value } = e.target;
-    //     setFormData({
-    //         ...formData,
-    //         [name]: value
-    //     });
-    //     updatePDF(); // Call updatePDF on each input change
-    // };
+    function onDocumentLoadSuccess({ numPages }) {
+        setNumPages(numPages);
+    }
+
+    const updatePDF = async () => {
+        // Update PDF with new data
+        try {
+            const userId = user.uid; // Get current user's ID
+            const userDocRef = doc(db, "Users", userId);
+            await updateDoc(userDocRef, {
+                templatePDF: formData
+            });
+            const userDocSnapshot = await getDoc(userDocRef);
+            if (userDocSnapshot.exists()) {
+                const userData = userDocSnapshot.data();
+                if (userData.templatePDF) {
+                    setTemplates(userData.templatePDF);
+                } else {
+                    console.log("No PDF URL found in the user's document");
+                }
+            } else {
+                console.log("User document does not exist");
+            }
+        } catch (error) {
+            console.error("Error updating PDF:", error);
+        }
+    };
 
 
-    const variants = ["flat", "bordered", "underlined", "faded"];
+    const handleTemplateChange = (index) => {
+        setTemplateIndex(index);
+    };
+
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({
+            ...formData,
+            [name]: value
+        });
+        updatePDF(); // Call updatePDF on each input change
+    };
+
+    const generatePDF = () => {
+        // Create a new jsPDF instance
+        const doc = new jsPDF();
+
+        // Define the content of your PDF
+        const content = document.getElementById("resume-container");
+
+        // Convert the content to a PDF
+        doc.html(content, {
+            callback: function (pdf) {
+                // Save the PDF
+                pdf.save("resume.pdf");
+            }
+        });
+    };
+
+
+
     return (
         <div>
-            {/** {pdfURL && (
+            {pdfURL && (
                 <div>
-                    <div className="flex">
+                    {/** <div className="flex">
                         <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
                             <Page pageNumber={pageNumber} renderTextLayer={false} renderAnnotationLayer={false} scale={1} />
                         </Document>
-                    </div>
+                    </div>  */}
 
                 </div>
-            )}*/}
+            )}
 
             <Navbar>
                 <NavbarBrand>
@@ -230,15 +253,15 @@ const EditorPage = () => {
                 </NavbarBrand>
                 <NavbarContent justify="end">
                     <NavbarItem>
-                        <Button as={Link} color="primary" href="#" variant="flat">
-                            Sign Up
+                        <Button onClick={generatePDF} color="primary" href="#" variant="flat">
+                            Download Pdf
                         </Button>
                     </NavbarItem>
                 </NavbarContent>
             </Navbar>
 
             <div className="flex lg:flex-row flex-col justify-center">
-                <div className="mt-10 mx-10 max-w-3xl px-4 py-8 shadow-xl">
+                <div id="resume-container" className="mt-10 mx-10 max-w-3xl px-4 py-8 shadow-xl">
                     <header className="text-center">
                         <h1 className="text-3xl font-bold">{formData.name}</h1>
                         <p className="mt-1">

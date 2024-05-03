@@ -33,6 +33,7 @@ yarn-error.log*
 .vercel
 
 app/firebase.js
+/src/temp/
 
 # typescript
 *.tsbuildinfo
