@@ -9,6 +9,7 @@ import { getSession, signOut } from "next-auth/react";
 import { Input, Textarea } from "@nextui-org/react";
 import jsPDF from 'jspdf';
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react";
+import Image from "next/image";
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
@@ -92,13 +93,25 @@ const EditorPage = () => {
     });
 
 
-    // const handleInputChange = (e, fieldName) => {
-    //     const { value } = e.target;
-    //     setFormData(prevFormData => ({
-    //         ...prevFormData,
-    //         [fieldName]: value
-    //     }));
-    // };
+    const handleInputChange = (e, fieldName, nestedFieldName = null) => {
+        const { value } = e.target;
+        // If nestedFieldName is provided, update the nested field value
+        if (nestedFieldName) {
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                [fieldName]: {
+                    ...prevFormData[fieldName],
+                    [nestedFieldName]: value
+                }
+            }));
+        } else {
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                [fieldName]: value
+            }));
+        }
+    };
+
 
     auth.onAuthStateChanged((currentUser) => {
         if (currentUser) {
@@ -207,14 +220,23 @@ const EditorPage = () => {
         setTemplateIndex(index);
     };
 
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value
-        });
-        updatePDF(); // Call updatePDF on each input change
+    const extractLinkedInName = (url) => {
+        const parts = url.split('/');
+        // Find the part that contains 'in' followed by the name
+        const namePartIndex = parts.findIndex(part => part === 'in');
+        if (namePartIndex !== -1 && parts[namePartIndex + 1]) {
+            // Extract the name without spaces or special characters
+            const nameWithHyphen = parts[namePartIndex + 1].split('-')[0];
+            // Convert the name to uppercase if needed
+            const name = nameWithHyphen.toUpperCase();
+            return name;
+        } else {
+            // Return a default name or handle the case differently
+            return 'LINKEDIN';
+        }
     };
+
+
 
     const generatePDF = () => {
         // Create a new jsPDF instance
@@ -249,7 +271,8 @@ const EditorPage = () => {
 
             <Navbar>
                 <NavbarBrand>
-                    <p className="font-bold text-inherit">ACME</p>
+                    <Image src="/assets/logo (1).png" alt="Logo" width={50} height={50} />
+                    <p className="font-bold text-inherit text-xl">ResumeCraft</p>
                 </NavbarBrand>
                 <NavbarContent justify="end">
                     <NavbarItem>
@@ -268,9 +291,9 @@ const EditorPage = () => {
                             <a href="tel:+11234567890" className="text-sm font-normal text-blue-700 mr-2">{formData.phone}</a>|
                             <span className="text-sm font-normal ml-2 mr-2">{formData.location}</span>
                             <br />
-                            <a href="mailto:contact@ResumeCraft.com" className="text-sm font-normal text-blue-700  mr-2">{formData.email}</a>|
-                            <a href="https://linkedin.com/company/ResumeCraft" className="text-sm font-normal text-blue-700 ml-2 mr-2">{formData.linkedin}</a>|
-                            <a href="www.ResumeCraft.com" className="text-sm font-normal text-blue-700 ml-2">{formData.website}</a>
+                            <a href={formData.email} className="text-sm font-normal text-blue-700  mr-2">{formData.email}</a>|
+                            <a href={formData.linkedin} className="text-sm font-normal text-blue-700 ml-2 mr-2">{extractLinkedInName(formData.linkedin)}</a>|
+                            <a href={formData.website} className="text-sm font-normal text-blue-700 ml-2">{formData.website}</a>
                         </p>
                     </header>
                     <section className="mt-8">
@@ -373,8 +396,8 @@ const EditorPage = () => {
                     </section>
                 </div>
 
-                <div className="lg:mt-40 mt-16 lg:mx-0 mx-5">
-                    <div className="flex w-full grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 flex-row mb-6 md:mb-0 gap-1">
+                <div className="lg:mt-40 mt-16 lg:w-full mx-auto lg:mx-5 mx-5">
+                    <div className="flex w-full grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-2 flex-row mb-6 md:mb-0 gap-1">
                         <Input
                             type="text"
                             label="Name"
@@ -426,6 +449,50 @@ const EditorPage = () => {
                             labelPlacement="outside"
                             value={formData.profile}
                             onChange={(e) => handleInputChange(e, "profile")}
+                            
+                        />
+                    </div>
+
+                    <div className="mt-5 flex w-full grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-2 flex-row mb-6 md:mb-0 gap-1">
+                        <Input
+                            type="text"
+                            label="Degree"
+                            labelPlacement="outside"
+                            value={formData.education.degree}
+                            onChange={(e) => handleInputChange(e, "education", "degree")}
+                            
+                        />
+
+                        <Input
+                            type="text"
+                            label="Institution"
+                            labelPlacement="outside"
+                            value={formData.education.institution}
+                            onChange={(e) => handleInputChange(e, "education", "institution")}
+                        />
+                        <Input
+                            type="text"
+                            label="location"
+                            labelPlacement="outside"
+                            value={formData.education.location}
+                            onChange={(e) => handleInputChange(e, "education", "location")}
+                        />
+                        <Input
+                            type="date"
+                            label="Course date"
+                            labelPlacement="outside"
+                            value={formData.education.date}
+                            onChange={(e) => handleInputChange(e, "education", "date")}
+                        />
+
+                    </div>
+                    <div className="flex w-full mt-5">
+                        <Textarea
+                            type="text"
+                            label="Courses"
+                            labelPlacement="outside"
+                            value={formData.education.courses}
+                            onChange={(e) => handleInputChange(e, "education", "courses")}
                         />
                     </div>
                 </div>
