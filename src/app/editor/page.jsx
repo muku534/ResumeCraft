@@ -1,21 +1,19 @@
 "use client"
 
 import { useEffect, useState } from "react";
-// import { useRouter } from "next/router";
 import { Document, Page, pdfjs } from 'react-pdf';
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { auth, db, storage } from "@/src/app/firebase";
-import { getSession, signOut } from "next-auth/react";
-import { Input, Textarea } from "@nextui-org/react";
-import jsPDF from 'jspdf';
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button } from "@nextui-org/react";
+import { auth, db } from "@/src/app/firebase";
+import { getSession } from "next-auth/react";
+import { Input, Textarea, Button, Navbar, NavbarBrand, NavbarContent, NavbarItem } from "@nextui-org/react";
 import Image from "next/image";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js`;
 
 const EditorPage = () => {
     const [user, setUser] = useState(null);
-    // const router = useRouter();
     const [pdfURL, setPdfURL] = useState('');
     const [numPages, setNumPages] = useState(null);
     const [pageNumber, setPageNumber] = useState(1);
@@ -23,8 +21,6 @@ const EditorPage = () => {
     const [templates, setTemplates] = useState([]);
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
-
-    const variants = ["flat", "bordered", "underlined", "faded"];
 
     const [formData, setFormData] = useState({
         name: 'FIRSTNAME LASTNAME',
@@ -35,7 +31,7 @@ const EditorPage = () => {
         linkedin: 'LinkedIn',
         website: 'www.ResumeCraft.com',
         github: 'github.com/something',
-        profile: `Innovative Digital Marketing Manager with 5+ years of experience managing online marketing campaigns and leading cross-functional teams. Skilled in developing integrated marketing strategies that drive brand awareness, engagement, and conversions. Regularly exceed performance targets and possess advanced analytical and problem-solving skills. Adept at leveraging cutting-edge digital tools and platforms to achieve marketing objectives.`,
+        profile: `Innovative Digital Marketing Manager with 5+ years of experience managing online marketing campaigns and leading cross-functional teams. `,
         expertise: `Content Marketing - WordPress - Content Strategy - Search Engine Ranking - Data Analysis - Visualizing with Advanced Charts - Social Media - Email Marketing - User Experience - Digital Strategy - Campaign Management - Lead Generation`,
         experience: [
             {
@@ -92,10 +88,8 @@ const EditorPage = () => {
         }
     });
 
-
     const handleInputChange = (e, fieldName, nestedFieldName = null) => {
         const { value } = e.target;
-        // If nestedFieldName is provided, update the nested field value
         if (nestedFieldName) {
             setFormData(prevFormData => ({
                 ...prevFormData,
@@ -112,14 +106,11 @@ const EditorPage = () => {
         }
     };
 
-
     auth.onAuthStateChanged((currentUser) => {
         if (currentUser) {
-            // User is signed in.
             setUser(currentUser);
-            console.log("User UID:", currentUser.uid); // Log user UID here
+            console.log("User UID:", currentUser.uid);
         } else {
-            // No user is signed in.
             setUser(null);
         }
     });
@@ -133,14 +124,6 @@ const EditorPage = () => {
         fetchData();
     }, []);
 
-    // useEffect(() => {
-    //     // Extract pdfURL from query parameters
-    //     const { pdfURL } = router.query;
-    //     if (pdfURL) {
-    //         fetchPDF(pdfURL);
-    //     }
-    // }, [router.query]);
-
     useEffect(() => {
         if (templates.length > 0) {
             fetchPDF(templates[templateIndex]);
@@ -150,8 +133,8 @@ const EditorPage = () => {
     useEffect(() => {
         const fetchPdfURL = async () => {
             try {
-                if (user) { // Check if user is not null
-                    const userId = user.uid; // Get current user's ID
+                if (user) {
+                    const userId = user.uid;
                     const userDocRef = doc(db, "Users", userId);
                     const userDocSnapshot = await getDoc(userDocRef);
                     if (userDocSnapshot.exists()) {
@@ -169,10 +152,8 @@ const EditorPage = () => {
                 console.error("Error fetching PDF URL:", error);
             }
         };
-
         fetchPdfURL();
-    }, [user]); // Add user to the dependency array
-
+    }, [user]);
 
     const fetchPDF = async (pdfURL) => {
         try {
@@ -192,9 +173,8 @@ const EditorPage = () => {
     }
 
     const updatePDF = async () => {
-        // Update PDF with new data
         try {
-            const userId = user.uid; // Get current user's ID
+            const userId = user.uid;
             const userDocRef = doc(db, "Users", userId);
             await updateDoc(userDocRef, {
                 templatePDF: formData
@@ -215,60 +195,53 @@ const EditorPage = () => {
         }
     };
 
-
     const handleTemplateChange = (index) => {
         setTemplateIndex(index);
     };
 
     const extractLinkedInName = (url) => {
         const parts = url.split('/');
-        // Find the part that contains 'in' followed by the name
         const namePartIndex = parts.findIndex(part => part === 'in');
         if (namePartIndex !== -1 && parts[namePartIndex + 1]) {
-            // Extract the name without spaces or special characters
             const nameWithHyphen = parts[namePartIndex + 1].split('-')[0];
-            // Convert the name to uppercase if needed
             const name = nameWithHyphen.toUpperCase();
             return name;
         } else {
-            // Return a default name or handle the case differently
             return 'LINKEDIN';
         }
     };
 
-
-
-    const generatePDF = () => {
-        // Create a new jsPDF instance
-        const doc = new jsPDF();
-
-        // Define the content of your PDF
+    const generatePDF = async () => {
         const content = document.getElementById("resume-container");
+        const canvas = await html2canvas(content);
+        const imgData = canvas.toDataURL('image/png');
 
-        // Convert the content to a PDF
-        doc.html(content, {
-            callback: function (pdf) {
-                // Save the PDF
-                pdf.save("resume.pdf");
-            }
-        });
+        const pdf = new jsPDF();
+        const imgWidth = 210;
+        const pageHeight = 295;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - imgHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save("resume.pdf");
     };
 
-
+    if (loading) {
+        return <p>Loading...</p>;
+    }
 
     return (
-        <div>
-            {pdfURL && (
-                <div>
-                    {/** <div className="flex">
-                        <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
-                            <Page pageNumber={pageNumber} renderTextLayer={false} renderAnnotationLayer={false} scale={1} />
-                        </Document>
-                    </div>  */}
-
-                </div>
-            )}
-
+        <>
             <Navbar>
                 <NavbarBrand>
                     <Image src="/assets/logo (1).png" alt="Logo" width={50} height={50} />
@@ -283,221 +256,82 @@ const EditorPage = () => {
                 </NavbarContent>
             </Navbar>
 
-            <div className="flex lg:flex-row flex-col justify-center">
-                <div id="resume-container" className="mt-10 mx-10 max-w-3xl px-4 py-8 shadow-xl">
-                    <header className="text-center">
-                        <h1 className="text-3xl font-bold">{formData.name}</h1>
-                        <p className="mt-1">
-                            <a href="tel:+11234567890" className="text-sm font-normal text-blue-700 mr-2">{formData.phone}</a>|
-                            <span className="text-sm font-normal ml-2 mr-2">{formData.location}</span>
-                            <br />
-                            <a href={formData.email} className="text-sm font-normal text-blue-700  mr-2">{formData.email}</a>|
-                            <a href={formData.linkedin} className="text-sm font-normal text-blue-700 ml-2 mr-2">{extractLinkedInName(formData.linkedin)}</a>|
-                            <a href={formData.website} className="text-sm font-normal text-blue-700 ml-2">{formData.website}</a>
-                        </p>
-                    </header>
-                    <section className="mt-8">
-                        <h2 className="text-md font-bold">SUMMARY</h2>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+                <div className="max-w-3xl mx-10 my-10 p-6 bg-white rounded-lg shadow-xl">
+                    <div id="resume-container" className="p-2">
+                        <h1 className="text-center pb-1 text-3xl font-bold">{formData.name}</h1>
+                        <p className="text-center pb-1 text-xs">{formData.phone} | {formData.location}</p>
+                        <p className="text-center pb-1 text-xs">LinkedIn: {formData.linkedin} | Website: {formData.website} | GitHub: {formData.github}</p>
+
+                        <h2 className="font-bold mt-5">Profile</h2>
                         <hr className="border-gray-700 border-b-1 mb-2" />
-                        <p className="text-sm font-normal text-gray-900">{formData.profile}</p>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">EDUCATION</h2>
+                        <p className="text-xs">{formData.profile}</p>
+
+                        <h2 className="font-bold mt-5">Experience</h2>
                         <hr className="border-gray-700 border-b-1 mb-2" />
-                        <ul className="list-disc pl-6">
-                            <li className="text-sm font-normal text-gray-900">
-                                <strong className="mr-2">{formData.education.degree}</strong>
-                                {formData.education.institution}
-                            </li>
-                            <p className="text-sm font-normal text-gray-900">{formData.education.date}</p>
+                        {formData.experience.map((exp, index) => (
+                            <div key={index} >
+                                <h3 className="font-bold">{exp.position} - {exp.company}</h3>
+                                <p className="text-xs">{exp.location} | {exp.date}</p>
+                                <ul className="list-disc list-inside">
+                                    {exp.responsibilities.map((resp, respIndex) => (
+                                        <li key={respIndex} className="text-xs">{resp}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+
+                        <h2 className="font-bold mt-5">Education</h2>
+                        <hr className="border-gray-700 border-b-1 mb-2" />
+                        <div className="flex flex-row items-center justify-between">
+                            <div className="flex flex-row items-center">
+                                <h3 className="font-bold">{formData.education.degree}</h3>
+                                <p className="pl-1 text-xs">{formData.education.institution}</p>
+                            </div>
+                            <p className="text-xs">{formData.education.date}</p>
+                        </div>
+                        <ul className="list-disc list-inside">
                             {formData.education.courses.map((course, index) => (
-                                <p key={index} className="text-sm font-normal">{course}</p>
+                                <li key={index} className="text-xs">{course}</li>
                             ))}
                         </ul>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">SKILLS</h2>
+
+                        <h2 className="font-bold mt-5">Certifications</h2>
                         <hr className="border-gray-700 border-b-1 mb-2" />
-                        <div className="flex flex-row">
-                            <div>
-                                {Object.keys(formData.skills).map((category, index) => (
-                                    <h3 key={index} className="text-sm text-gray-900 font-bold mb-1">{formData.skills[category]}</h3>
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">EXPERIENCE</h2>
-                        <hr className="border-gray-700 border-b-1 mb-2" />
-                        <div className="space-y-4">
-                            {formData.experience.map((exp, index) => (
-                                <div key={index}>
-                                    <ul className="list-disc">
-                                        <div className="flex flex-row justify-between">
-                                            <div>
-                                                <h3 className="text-sm font-bold">{exp.position}</h3>
-                                                <p className="text-sm font-normal">{exp.company}</p>
-                                            </div>
-                                            <div className="">
-                                                <p className="text-sm font-normal">{exp.date}</p>
-                                                <p className="text-sm font-normal">{exp.location}</p>
-                                            </div>
-                                        </div>
-                                        <div className="pl-10 pt-1">
-                                            {exp.responsibilities.map((responsibility, index) => (
-                                                <li key={index} className="text-sm font-normal">{responsibility}</li>
-                                            ))}
-                                        </div>
-                                    </ul>
-                                </div>
+                        <ul className="list-disc list-inside">
+                            {formData.certifications.map((cert, index) => (
+                                <li key={index} className="text-xs">{cert}</li>
                             ))}
-                        </div>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">PROJECTS</h2>
-                        <hr className="border-gray-700 border-b-1 mb-2" />
-                        <div className="">
-                            <div>
-                                <ui>
-                                    <div className="mb-2">
-                                        <li className="text-sm font-bold">Hiring Search Tool</li>
-                                        <p className="text-sm font-normal pl-5">Built a tool to search for Hiring Managers and Recruiters by using ReactJS, NodeJS, Firebase and boolean queries. Over 25000 people have used it so far, with 5000+ queries being saved and shared, and search results even better than LinkedIn! <a href="https://hiring-search.careerflow.ai/">(Try it here)</a></p>
-                                    </div>
-                                    <div className="mb-2">
-                                        <li className="text-sm font-bold">Hiring Search Tool</li>
-                                        <p className="text-sm font-normal pl-5">Built a tool to search for Hiring Managers and Recruiters by using ReactJS, NodeJS, Firebase and boolean queries. Over 25000 people have used it so far, with 5000+ queries being saved and shared, and search results even better than LinkedIn! <a href="https://hiring-search.careerflow.ai/">(Try it here)</a></p>
-                                    </div>
-                                </ui>
-                            </div>
-                            {/* Add more project items similarly */}
-                        </div>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">EXTRA-CURRICULAR ACTIVITIES</h2>
-                        <hr className="border-gray-700 border-b-1 mb-2" />
-                        <ul className="list-disc pl-6 ">
-                            <div className="mb-2">
-                                <li className="text-sm font-normal ">Actively write <a href="https://www.ResumeCraft.com/blog/">blog posts</a> and social media posts (<a href="https://www.tiktok.com/@ResumeCraft">TikTok</a>, <a href="https://www.instagram.com/ResumeCraft/?hl=en">Instagram</a>) viewed by over 20K+ job seekers per week to help people with best practices to land their dream jobs.</li>
-                            </div>
-                            <div className="mb-2">
-                                <li className="text-sm font-normal ">Actively write <a href="https://www.ResumeCraft.com/blog/">blog posts</a> and social media posts (<a href="https://www.tiktok.com/@ResumeCraft">TikTok</a>, <a href="https://www.instagram.com/ResumeCraft/?hl=en">Instagram</a>) viewed by over 20K+ job seekers per week to help people with best practices to land their dream jobs.</li>
-                            </div>
                         </ul>
-                    </section>
-                    <section className="mt-4">
-                        <h2 className="text-md font-bold">LEADERSHIP</h2>
+
+                        <h2 className="font-bold mt-5">Skills</h2>
                         <hr className="border-gray-700 border-b-1 mb-2" />
-                        <ul className="list-disc pl-6">
-                            <div className="mb-2">
-                                <li className="text-sm font-normal">Admin for the <a href="https://discord.com/invite/WWbjEaZ">ResumeCraft Discord community</a> with over 6000+ job seekers and industry mentors. Actively involved in facilitating online events, career conversations, and more alongside other admins and a team of volunteer moderators!</li>
-                                {/* Add more leadership items similarly */}
-                            </div>
-                        </ul>
-                    </section>
+                        <p className="text-xs">Data Visualization: {formData.skills.dataVisualization}</p>
+                        <p className="text-xs">Digital Marketing: {formData.skills.digitalMarketing}</p>
+                        <p className="text-xs">Software: {formData.skills.software}</p>
+
+                        <h2 className="font-bold mt-5">Languages</h2>
+                        <hr className="border-gray-700 border-b-1 mb-2" />
+                        <p className="text-xs">English: {formData.languages.english}</p>
+                        <p className="text-xs">French: {formData.languages.french}</p>
+                        <p className="text-xs">Spanish: {formData.languages.spanish}</p>
+                        <p className="text-xs">German: {formData.languages.german}</p>
+                    </div>
                 </div>
 
-                <div className="lg:mt-40 mt-16 lg:w-full mx-auto lg:mx-5 mx-5">
-                    <div className="flex w-full grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-2 flex-row mb-6 md:mb-0 gap-1">
-                        <Input
-                            type="text"
-                            label="Name"
-                            labelPlacement="outside"
-                            value={formData.name}
-                            onChange={(e) => handleInputChange(e, "name")}
-                        />
-                        <Input
-                            type="phone"
-                            label="Phone"
-                            labelPlacement="outside"
-                            value={formData.phone}
-                            onChange={(e) => handleInputChange(e, "phone")}
-                        />
-                        <Input
-                            type="text"
-                            label="Address"
-                            labelPlacement="outside"
-                            value={formData.location}
-                            onChange={(e) => handleInputChange(e, "location")}
-                        />
-                        <Input
-                            type="email"
-                            label="Email"
-                            labelPlacement="outside"
-                            value={formData.email}
-                            onChange={(e) => handleInputChange(e, "email")}
-                        />
-                        <Input
-                            type="text"
-                            label="Linkedin"
-                            labelPlacement="outside"
-                            value={formData.linkedin}
-                            onChange={(e) => handleInputChange(e, "linkedin")}
-                        />
-                        <Input
-                            type="text"
-                            label="Website"
-                            labelPlacement="outside"
-                            value={formData.website}
-                            onChange={(e) => handleInputChange(e, "website")}
-                        />
+                {pdfURL && (
+                    <div className="mt-10">
+                        <Document file={pdfURL} onLoadSuccess={onDocumentLoadSuccess}>
+                            {Array.from(new Array(numPages), (el, index) => (
+                                // <Page key={`page_${index + 1}`} pageNumber={index + 1} renderTextLayer={false``} />
+                                <Page key={`page_${index + 1}`} pageNumber={index + 1} renderTextLayer={false} renderAnnotationLayer={false} scale={1} />
+                            ))}
+                        </Document>
                     </div>
+                )}
 
-                    <div className="flex w-full mt-5">
-                        <Textarea
-                            type="text"
-                            label="Summery"
-                            labelPlacement="outside"
-                            value={formData.profile}
-                            onChange={(e) => handleInputChange(e, "profile")}
-                            
-                        />
-                    </div>
-
-                    <div className="mt-5 flex w-full grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-2 flex-row mb-6 md:mb-0 gap-1">
-                        <Input
-                            type="text"
-                            label="Degree"
-                            labelPlacement="outside"
-                            value={formData.education.degree}
-                            onChange={(e) => handleInputChange(e, "education", "degree")}
-                            
-                        />
-
-                        <Input
-                            type="text"
-                            label="Institution"
-                            labelPlacement="outside"
-                            value={formData.education.institution}
-                            onChange={(e) => handleInputChange(e, "education", "institution")}
-                        />
-                        <Input
-                            type="text"
-                            label="location"
-                            labelPlacement="outside"
-                            value={formData.education.location}
-                            onChange={(e) => handleInputChange(e, "education", "location")}
-                        />
-                        <Input
-                            type="date"
-                            label="Course date"
-                            labelPlacement="outside"
-                            value={formData.education.date}
-                            onChange={(e) => handleInputChange(e, "education", "date")}
-                        />
-
-                    </div>
-                    <div className="flex w-full mt-5">
-                        <Textarea
-                            type="text"
-                            label="Courses"
-                            labelPlacement="outside"
-                            value={formData.education.courses}
-                            onChange={(e) => handleInputChange(e, "education", "courses")}
-                        />
-                    </div>
-                </div>
             </div>
-        </div>
+        </>
     );
 };
 
