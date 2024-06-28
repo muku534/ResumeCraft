@@ -1,0 +1,11 @@
+
+{
+    "redirects": [
+      {
+        "source": "/(.*)",
+        "destination": "/maintenance",
+        "permanent": false
+      }
+    ]
+  }
+  
