@@ -16,6 +16,42 @@ module.exports = {
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
+    fontFamily: {
+      'body': [
+        'Oswald',
+        'ui-sans-serif',
+        'system-ui',
+        '-apple-system',
+        'system-ui',
+        'Segoe UI',
+        'Roboto',
+        'Helvetica Neue',
+        'Arial',
+        'Noto Sans',
+        'sans-serif',
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji'
+      ],
+      'sans': [
+        'Oswald',
+        'ui-sans-serif',
+        'system-ui',
+        '-apple-system',
+        'system-ui',
+        'Segoe UI',
+        'Roboto',
+        'Helvetica Neue',
+        'Arial',
+        'Noto Sans',
+        'sans-serif',
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol',
+        'Noto Color Emoji'
+      ]
+    }
   },
   darkMode: "class",
   plugins: [nextui()],
